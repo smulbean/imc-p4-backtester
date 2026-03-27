@@ -100,6 +100,11 @@ class TomatoesTrader(ProductTrader):
 
     ALPHA_CLIP = 2.0  # tanh scaled cap
 
+    # affine smoothing: smoothed = A * prev + B * raw + C
+    FAIR_SMOOTH_A = 0.82
+    FAIR_SMOOTH_B = 0.18
+    FAIR_SMOOTH_C = 0.0
+
     def get_mid(self) -> float | None:
         if self.best_bid is None or self.best_ask is None:
             return None
@@ -183,6 +188,20 @@ class TomatoesTrader(ProductTrader):
             return 0.0
         return mid - (sum(hist) / len(hist))
 
+    def apply_affine_smoothing(self, raw_fair: float) -> float:
+        prev_smoothed = self.last_trader_data.get(f"{self.name}_smoothed_fair")
+        if prev_smoothed is None:
+            smoothed = raw_fair
+        else:
+            smoothed = (
+                self.FAIR_SMOOTH_A * float(prev_smoothed)
+                + self.FAIR_SMOOTH_B * float(raw_fair)
+                + self.FAIR_SMOOTH_C
+            )
+
+        self.new_trader_data[f"{self.name}_smoothed_fair"] = smoothed
+        return smoothed
+
     def compute_fair(self) -> float | None:
         mid = self.get_mid()
         if mid is None:
@@ -201,13 +220,15 @@ class TomatoesTrader(ProductTrader):
         )
 
         alpha = math.tanh(alpha_raw) * self.ALPHA_CLIP
-        fair = micro_l2 + alpha
+        raw_fair = micro_l2 + alpha
+        fair = self.apply_affine_smoothing(raw_fair)
 
         self.log("mid", mid)
         self.log("micro_l2", micro_l2)
         self.log("alpha_raw", round(alpha_raw, 4))
         self.log("alpha", round(alpha, 4))
-        self.log("fair", round(fair, 4))
+        self.log("raw_fair", round(raw_fair, 4))
+        self.log("smoothed_fair", round(fair, 4))
 
         return fair
 

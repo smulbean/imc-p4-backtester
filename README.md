@@ -5,7 +5,7 @@ A local backtester for Prosperity 4 algorithms, built on top of [jmerle's Prospe
 ## Setup
 
 ```sh
-pip install -U prosperity3bt
+pip install -U prosperity4bt
 ```
 
 Or, for development (changes take effect immediately):
@@ -20,25 +20,25 @@ uv sync
 
 ```sh
 # All days in Round 0
-prosperity3bt example/trader.py 0
+prosperity4bt example/trader.py 0
 
 # Single day (Round 0, Day -1)
-prosperity3bt example/trader.py 0--1
+prosperity4bt example/trader.py 0--1
 
 # Single day (Round 0, Day -2)
-prosperity3bt example/trader.py 0--2
+prosperity4bt example/trader.py 0--2
 
 # Both days, merged PnL
-prosperity3bt example/trader.py 0 --merge-pnl
+prosperity4bt example/trader.py 0 --merge-pnl
 
 # Use a custom data directory instead of the bundled data
-prosperity3bt example/trader.py 0 --data prosperity3bt/resources
+prosperity4bt example/trader.py 0 --data prosperity4bt/resources
 
 # Skip saving the output log
-prosperity3bt example/trader.py 0 --no-out
+prosperity4bt example/trader.py 0 --no-out
 
 # Print trader stdout while running (useful for debugging)
-prosperity3bt example/trader.py 0 --print
+prosperity4bt example/trader.py 0 --print
 ```
 
 ## Data file format
@@ -59,14 +59,14 @@ Up to 3 levels of bid/ask depth are supported. Empty cells are fine.
 
 ## Adding new round data
 
-1. Create a directory: `prosperity3bt/resources/round<N>/`
+1. Create a directory: `prosperity4bt/resources/round<N>/`
 2. Add a `__init__.py` (empty) to make it a package.
 3. Drop in your price and trade CSV files following the naming convention above.
-4. If the new round introduces new products, add them to `LIMITS` in [prosperity3bt/data.py](prosperity3bt/data.py).
+4. If the new round introduces new products, add them to `LIMITS` in [prosperity4bt/data.py](prosperity4bt/data.py).
 
 ## Active products and limits (Round 0)
 
-Defined in [prosperity3bt/data.py](prosperity3bt/data.py):
+Defined in [prosperity4bt/data.py](prosperity4bt/data.py):
 
 | Product  | Position limit |
 |----------|---------------|

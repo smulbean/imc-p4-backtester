@@ -5,7 +5,7 @@ Algorithm files should import from this module:
     from datamodel import OrderDepth, TradingState, Order, Trade
 
 Submit this file alongside your algorithm when uploading to Prosperity.
-Do NOT import from prosperity3bt.datamodel in submitted code.
+Do NOT import from prosperity4bt.datamodel in submitted code.
 """
 
 import json
