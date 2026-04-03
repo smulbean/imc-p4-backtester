@@ -175,5 +175,30 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
-# Default output directory
+# Backtest output logs
 backtests/
+
+# Analytics output artifacts (plots, metrics, insights, trades, config snapshots)
+outputs/
+
+# Environment / secrets
+.env
+*.env.local
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Jupyter / interactive sessions
+*.ipynb
+.ipynb_checkpoints/
+
+# Data files that are too large or user-local
+data/

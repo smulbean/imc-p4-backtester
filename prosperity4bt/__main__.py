@@ -8,6 +8,7 @@ from typing import Annotated, Any, Optional
 
 from typer import Argument, Option, Typer
 
+from prosperity4bt.analytics.reporting import run_analytics_pipeline
 from prosperity4bt.data import has_day_data
 from prosperity4bt.file_reader import FileReader, FileSystemReader, PackageResourcesReader
 from prosperity4bt.models import BacktestResult, TradeMatchingMode
@@ -64,15 +65,14 @@ def parse_days(file_reader: FileReader, days: list[str]) -> list[tuple[int, int]
     return parsed_days
 
 
-def parse_out(out: Optional[Path], no_out: bool) -> Optional[Path]:
+def parse_out(out: Optional[Path], no_out: bool, run_timestamp: str) -> Optional[Path]:
     if out is not None:
         return out
 
     if no_out:
         return None
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    return Path.cwd() / "backtests" / f"{timestamp}.log"
+    return Path.cwd() / "backtests" / f"{run_timestamp}.log"
 
 
 def print_day_summary(result: BacktestResult) -> None:
@@ -196,6 +196,8 @@ def cli(
     match_trades: Annotated[TradeMatchingMode, Option(help="How to match orders against market trades. 'all' matches at or worse than your quote, 'worse' matches only trades worse than your quote, 'none' skips market trade matching.")] = TradeMatchingMode.all,
     no_progress: Annotated[bool, Option("--no-progress", help="Don't show progress bars.")] = False,
     original_timestamps: Annotated[bool, Option("--original-timestamps", help="Preserve original timestamps in the output log rather than making them increase across days.")] = False,
+    no_plots: Annotated[bool, Option("--no-plots", help="Skip generating per-product plots.")] = False,
+    no_llm_insights: Annotated[bool, Option("--no-llm-insights", help="Skip LLM commentary even if ANTHROPIC_API_KEY is set.")] = False,
     version: Annotated[bool, Option("--version", "-v", help="Show the program's version number and exit.", is_eager=True, callback=version_callback)] = False,
 ) -> None:  # fmt: skip
     if out is not None and no_out:
@@ -212,9 +214,11 @@ def cli(
         print(f"{algorithm} does not expose a Trader class")
         sys.exit(1)
 
+    run_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
     file_reader = parse_data(data)
     parsed_days = parse_days(file_reader, days)
-    output_file = parse_out(out, no_out)
+    output_file = parse_out(out, no_out, run_timestamp)
 
     show_progress_bars = not no_progress and not print_output
 
@@ -243,10 +247,22 @@ def cli(
     if len(parsed_days) > 1:
         print_overall_summary(results)
 
+    merged_results = reduce(lambda a, b: merge_results(a, b, merge_pnl, not original_timestamps), results)
+
     if output_file is not None:
-        merged_results = reduce(lambda a, b: merge_results(a, b, merge_pnl, not original_timestamps), results)
         write_output(output_file, merged_results)
         print(f"\nSuccessfully saved backtest results to {format_path(output_file)}")
+
+    run_analytics_pipeline(
+        merged_results,
+        run_timestamp,
+        algorithm_path=str(algorithm),
+        days=parsed_days,
+        match_trades_mode=match_trades.value,
+        merge_pnl=merge_pnl,
+        no_plots=no_plots,
+        no_llm_insights=no_llm_insights,
+    )
 
 
 def main() -> None:
