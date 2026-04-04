@@ -1,3 +1,13 @@
+"""
+Official Prosperity 4 datamodel — matches the environment provided by Prosperity's submission system.
+
+Algorithm files should import from this module:
+    from datamodel import OrderDepth, TradingState, Order, Trade
+
+Submit this file alongside your algorithm when uploading to Prosperity.
+Do NOT import from prosperity4bt.datamodel in submitted code.
+"""
+
 import json
 from json import JSONEncoder
 from typing import Dict, List
@@ -13,7 +23,6 @@ ObservationValue = int
 
 
 class Listing:
-    # P4: denomination is the currency string "XIRECS", not an integer
     def __init__(self, symbol: Symbol, product: Product, denomination: Product):
         self.symbol = symbol
         self.product = product
@@ -21,8 +30,6 @@ class Listing:
 
 
 class ConversionObservation:
-    # P4: last two fields are sunlight (float) and humidity (float)
-    # (P3 used sugarPrice / sunlightIndex — those are gone)
     def __init__(
         self,
         bidPrice: float,
@@ -82,7 +89,13 @@ class OrderDepth:
 
 class Trade:
     def __init__(
-        self, symbol: Symbol, price: int, quantity: int, buyer: UserId = None, seller: UserId = None, timestamp: int = 0
+        self,
+        symbol: Symbol,
+        price: int,
+        quantity: int,
+        buyer: UserId = None,
+        seller: UserId = None,
+        timestamp: int = 0,
     ) -> None:
         self.symbol = symbol
         self.price: int = price
